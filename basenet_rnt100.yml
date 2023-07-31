@@ -1,0 +1,80 @@
+MODEL:
+  PRETRAIN_CHOICE: 'imagenet'
+  # NAME: 'mobilenet'
+  NAME: 'inception'
+  # PRETRAIN_PATH: "F:\\myproject_mmdataset\\pretrain_file\\resnet50-19c8e357.pth"
+  # PRETRAIN_PATH: "C:\\Users\\zxp\\.torch\\models\\mobilenet_v2-b0353104.pth"
+  # PRETRAIN_PATH: "C:\\Users\\zxp\\.torch\\models\\se_resnet50-ce0d4300.pth"
+  PRETRAIN_PATH: "C:\\Users\\zxp\\.torch\\models\\inception_v3_google-1a9a5a14.pth"
+  # PRETRAIN_PATH: "C:\\Users\\zxp\\.torch\\models\\densenet121-a639ec97.pth"
+  # PRETRAIN_PATH: "/home/zhuxianpeng/reid-strong-baseline-master/reid-strong-baseline-master/outputs/test/resnet50_model_110.pth"
+  METRIC_LOSS_TYPE: 'triplet'
+  IF_LABELSMOOTH: 'no'
+  IF_WITH_CENTER: 'no'
+  BRANCHES: 3
+
+INPUT:
+  SIZE_TRAIN: [128, 256]
+  SIZE_TEST: [128, 256]
+  PROB: 0.5 # random horizontal flip
+  RE_PROB: 0.4 # random erasing
+  PADDING: 10
+
+DATASETS:
+  NAMES: ('rnt100')
+
+DATALOADER:
+  SAMPLER: 'softmax_triplet'
+  NUM_INSTANCE: 4
+  NUM_WORKERS: 4
+
+SOLVER:
+  OPTIMIZER_NAME: 'Adam'
+  MAX_EPOCHS: 120
+  BASE_LR: 0.00035
+
+  CLUSTER_MARGIN: 0.3
+
+  CENTER_LR: 0.5
+  CENTER_LOSS_WEIGHT: 0.0005
+  CENTER_NUM: 3
+  CENTER_F_DIM: 2048
+
+  RANGE_K: 2
+  RANGE_MARGIN: 0.3
+  RANGE_ALPHA: 0
+  RANGE_BETA: 1
+  RANGE_LOSS_WEIGHT: 1
+
+  BIAS_LR_FACTOR: 1
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.0005
+  IMS_PER_BATCH: 32
+
+  STEPS: [30, 55]
+  GAMMA: 0.1
+
+  WARMUP_FACTOR: 0.01
+  WARMUP_ITERS: 10
+  WARMUP_METHOD: 'linear'
+
+  CHECKPOINT_PERIOD: 40
+  LOG_PERIOD: 50
+  EVAL_PERIOD: 10
+TEST:
+  IMS_PER_BATCH: 8
+  RE_RANKING: 'no'
+  WEIGHT: "outputs/CdC_lam03alpha06_ALNU/resnet50_model_800.pth"
+  NECK_FEAT: 'after'
+  FEAT_NORM: 'yes'
+
+OUTPUT_DIR: ""
+OUTPUT_ROOT: "outputs"
+NAME: "msvr_seresnet_2"
+SAVE_LIST: ['modeling/baseNet.py', 'engine/trainer.py']
+DCT: "some discription"
+GPU: [0]
+JUST_BASELINE: "basenet"
+SAVE_FEAT: "no"
+ALPHA: 0.6
+LAMBDA: 0.3
