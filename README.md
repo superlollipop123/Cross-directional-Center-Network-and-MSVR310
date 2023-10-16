@@ -1,7 +1,7 @@
 # Cross-directional Center Network (CCNet) and MSVR310
 Paper: Multi-spectral Vehicle Re-identification with Cross-directional  Center Network and A High-quality Benchmark
 
-Dataset: ##link: https://pan.baidu.com/s/1QyZUkbvpZ3U4d0iPt4IfVA ##code:msvr
+Dataset: ##link: [https://pan.baidu.com/s/1QyZUkbvpZ3U4d0iPt4IfVA](https://pan.baidu.com/s/167TY9fCz5ZjtDdsOIovX1w?pwd=msvr ) ##code:msvr
 
 本代码整体框架适用的是罗浩博士的 Bag of Tricks的代码框架
 论文：A Strong Baseline and Batch Normalization Neck for Deep Person Re-Identification
