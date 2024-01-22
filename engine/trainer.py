@@ -24,7 +24,7 @@ from functools import reduce
 from utils.mytools import LOSS_ZERO
 
 from layers.triplet_loss import euclidean_dist
-
+from layers.center_loss import CenterLoss
 from layers import fastreid_circle_loss
 from utils.mytools import modal_rand_missing
 
@@ -48,6 +48,7 @@ def hetero_loss(f_list, label, margin=0.1): # CdC-M loss
     dist_func = nn.MSELoss(reduction='sum')
     center_list = []
     for l_idx in range(uni_label_num):
+        center_list = []
         # print(l_idx)
         for f in chunk_f_list:
             center_list.append(torch.mean(f[l_idx], 0))
@@ -55,7 +56,7 @@ def hetero_loss(f_list, label, margin=0.1): # CdC-M loss
             for j in range(i+1, l):
                 dist += max(0, dist_func(center_list[i], center_list[j]) - margin)
         
-    return 2*dist/(l*(l-1))
+    return 2*dist/((l*(l-1))*uni_label_num)
 
 def MMIC_LOSS(f_list, label, margin): # CdC-S loss
     uni_label_num = len(label.unique())
@@ -242,6 +243,7 @@ def create_supervised_trainer(cfg, model, optimizer, loss_fn,
         model.to(device)
 
     trip_loss = TripletLoss(margin=0.3)
+    center_loss = CenterLoss()
     # w_trip_loss = WeightedTripletLoss(margin=0.3)
     # from layers.myloss import ModifiedTripletLoss as CMG
     # trip_loss = CMG(margin=0.3)
@@ -253,7 +255,7 @@ def create_supervised_trainer(cfg, model, optimizer, loss_fn,
         optimizer.zero_grad()
         # optimizer_ptrip.zero_grad()
 
-        imgs, target, _, _, _ = batch
+        imgs, target, _, _ ,_= batch
         # imgs, mask = modal_rand_missing([img1, img2, img3], prob=0.1)
         # img1, img2, img3 = imgs
         for i in range(len(imgs)):
@@ -272,10 +274,10 @@ def create_supervised_trainer(cfg, model, optimizer, loss_fn,
         # print(gf_list[0].shape, gf_list[1].shape, gf_list[2].shape)
         # raise
         # import pdb; pdb.set_trace()
-        cls_loss_0 = F.cross_entropy(pred_list[0], target)# + trip_loss(gf_list[0], target)[0]
-        cls_loss_1 = F.cross_entropy(pred_list[1], target)# + trip_loss(gf_list[1], target)[0]
+        cls_loss_0 = F.cross_entropy(pred_list[0], target) #+ trip_loss(gf_list[0], target)[0]
+        cls_loss_1 = F.cross_entropy(pred_list[1], target) #+ trip_loss(gf_list[1], target)[0]
         if cfg.MODEL.BRANCHES == 3:
-            cls_loss_2 = F.cross_entropy(pred_list[2], target)# + trip_loss(gf_list[2], target)[0]
+            cls_loss_2 = F.cross_entropy(pred_list[2], target) #+ trip_loss(gf_list[2], target)[0]
         else:
             cls_loss_2 = 0
         # cls_loss_3 = F.cross_entropy(pred_list[3], target) #+ trip_loss(gf_list[3], target)[0]
@@ -289,12 +291,12 @@ def create_supervised_trainer(cfg, model, optimizer, loss_fn,
 
         # w_loss = w_trip_loss(gf_list, weight_list, target)[0]
         # w_loss = trip_loss(torch.cat(gf_list, dim=1), target)[0]
-        w_loss = 0
+        # w_loss = 0
         # w_loss = trip_loss(gf_list[0], target)[0] + trip_loss(gf_list[1], target)[0] + trip_loss(gf_list[2], target)[0]
         # import pdb; pdb.set_trace()
-        # w_loss = trip_loss(torch.cat(gf_list, dim=0), torch.cat([target]*3, 0))[0]
-        # w_loss = trip_loss(gf_list[0], gf_list[1], target)[0] + trip_loss(gf_list[0], gf_list[2], target)[0] + trip_loss(gf_list[1], gf_list[2], target)[0]
-
+        # w_loss = trip_loss(torch.cat(gf_list, dim=-1), target)[0]
+        # w_loss = trip_loss(gf_list[0],  target)[0] + trip_loss(gf_list[1],  target)[0] + trip_loss(gf_list[2],  target)[0]
+        w_loss = 0
         # p_loss = p_trip_loss(gf_list, target)[0]
         p_loss = 0
 
@@ -387,7 +389,7 @@ def create_evaluator(model, metrics, return_ctler, device=None):
             g_feats, weights, bn_f_list, mid_list = model(imgs[:len(imgs)])
             # g_feats, weights, bn_f_list, mid_list = model(imgs[:2])
             # result = return_ctler(g_feats, weights)
-            result = return_ctler(g_feats, weights, bn_f_list)
+            result = return_ctler(g_feats,  bn_f_list)
             if isinstance(result, tuple):
                 return  (*result, pids, camids, sceneids, img_path)
             else:
